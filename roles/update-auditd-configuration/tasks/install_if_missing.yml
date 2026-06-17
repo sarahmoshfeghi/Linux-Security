@@ -1,0 +1,13 @@
+---
+- name: Install auditd if missing
+  package:
+    name: auditd
+    state: present
+  when: auditd_check.rc != 0
+
+- name: Enable and start auditd
+  systemd:
+    name: auditd
+    enabled: true
+    state: started
+  when: auditd_check.rc != 0
