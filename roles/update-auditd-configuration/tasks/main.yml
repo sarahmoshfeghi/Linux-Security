@@ -1,0 +1,8 @@
+---
+- import_tasks: check_install.yml
+- import_tasks: install_if_missing.yml
+- import_tasks: clear_rules.yml
+- import_tasks: copy_rules.yml
+- import_tasks: load_rules.yml
+- import_tasks: restart_auditd.yml
+- import_tasks: verify_rules.yml
