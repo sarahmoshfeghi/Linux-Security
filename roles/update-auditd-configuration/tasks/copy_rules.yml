@@ -1,0 +1,6 @@
+---
+- name: Copy auditd.rules
+  copy:
+    src: auditd.rules
+    dest: "{{ linux_auditd_dest_path }}"
+    mode: '0640'
