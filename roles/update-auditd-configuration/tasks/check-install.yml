@@ -1,0 +1,6 @@
+---
+- name: Check if auditd is installed
+  command: auditctl -s
+  register: auditd_check
+  ignore_errors: true
+  changed_when: false
