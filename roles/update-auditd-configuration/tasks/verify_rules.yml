@@ -1,0 +1,9 @@
+---
+- name: Verify audit rules
+  command: auditctl -l
+  register: audit_rules_output
+  changed_when: false
+
+- name: Show loaded rules
+  debug:
+    var: audit_rules_output.stdout_lines
