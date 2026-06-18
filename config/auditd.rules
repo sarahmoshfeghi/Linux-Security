@@ -1,0 +1,136 @@
+# Remove any existing rules
+-D
+
+# Buffer Size
+## Feel free to increase this if the machine panic's
+-b 8192
+
+# Failure Mode
+## Possible values: 0 (silent), 1 (printk, print a failure message), 2 (panic, halt the system)
+-f 1
+
+# Ignore errors
+## e.g. caused by users or files not found in the local environment  
+-i 
+
+# Self Auditing ---------------------------------------------------------------
+
+## Audit the audit logs
+### Successful and unsuccessful attempts to read information from the audit records
+##-w /var/log/audit/ -p wra -k auditlog
+##-w /var/audit/ -p wra -k auditlog
+
+## Auditd configuration
+### Modifications to audit configuration that occur while the audit collection functions are operating
+-w /etc/audit/ -p wa -k auditconfig
+-w /etc/libaudit.conf -p wa -k auditconfig
+-w /etc/audisp/ -p wa -k audispconfig
+
+## Monitor for use of audit management tools
+-w /sbin/auditctl -p x -k audittools
+-w /sbin/auditd -p x -k audittools
+
+# Filters ---------------------------------------------------------------------
+
+### We put these early because audit is a first match wins system.
+
+## Ignore SELinux AVC records
+##-a always,exclude -F msgtype=AVC
+
+## Ignore current working directory records
+-a always,exclude -F msgtype=CWD
+
+## Ignore EOE records (End Of Event, not needed)
+-a always,exclude -F msgtype=EOE
+
+## Cron jobs fill the logs with stuff we normally don't want (works with SELinux)
+-a never,user -F subj_type=crond_t
+-a exit,never -F subj_type=crond_t
+
+## This prevents chrony from overwhelming the logs
+##-a never,exit -F arch=b64 -S adjtimex -F auid=unset -F uid=chrony -F subj_type=chronyd_t
+
+## This is not very interesting and wastes a lot of space if the server is public facing
+-a always,exclude -F msgtype=CRYPTO_KEY_USER
+
+## VMWare tools (Comment out lines 75 and 76 if they are not needed)
+#-a exit,never -F arch=b32 -S fork -F success=0 -F path=/usr/lib/vmware-tools -F subj_type=initrc_t -F exit=-2
+#-a exit,never -F arch=b64 -S fork -F success=0 -F path=/usr/lib/vmware-tools -F subj_type=initrc_t -F exit=-2
+
+## CentOS
+#-a exit,never -F arch=b32 -S fork -F success=0 -F path=/etc/vmware-tools -F subj_type=initrc_t -F exit=-2
+#-a exit,never -F arch=b64 -S fork -F success=0 -F path=/etc/vmware-tools -F subj_type=initrc_t -F exit=-2
+
+### High Volume Event Filter (especially on Linux Workstations)
+-a exit,never -F arch=b32 -F dir=/dev/shm -k sharedmemaccess
+-a exit,never -F arch=b64 -F dir=/dev/shm -k sharedmemaccess
+-a exit,never -F arch=b32 -F dir=/var/lock/lvm -k locklvm
+-a exit,never -F arch=b64 -F dir=/var/lock/lvm -k locklvm
+
+##High Rate Events
+-a never,exit -F path=/lib64/ld-linux-x86-64.so.2
+-a never,exit -F path=/usr/bin/sleep 
+-a never,exit -F path=/usr/bin/awk
+-a never,exit -F path=/usr/bin/who
+#-a never,exit -F path=/data/informix/bin/onstat
+#-a never,exclude -F exe=/u01/app/oracle/tfa/opredw/tfa_home/jre/bin/java -k T1043_Exclude
+
+
+# Rules -----------------------------------------------------------------------
+#Special File
+-a always,exit -F arch=b32 -S mknod -S mknodat -F auid>=1000 -F auid!=4294967295 -k specialfiles
+-a always,exit -F arch=b64 -S mknod -S mknodat -F auid>=1000 -F auid!=4294967295 -k specialfiles
+
+#Change Swap
+-a always,exit -F arch=b64 -S swapon -S swapoff -F auid!=-1 -k swap
+-a always,exit -F arch=b32 -S swapon -S swapoff -F auid!=-1 -k swap
+
+#Systemd
+-w /bin/systemctl -p x -k systemd_T1543.002_1
+-w /etc/systemd/ -p wa -k system
+-w /usr/lib/systemd/system/ -k T1543.002_2
+-w /run/systemd/system/ -k T1543.002_3
+
+#SELinux
+-w /etc/selinux/ -p wa -k MAC_Policy_SeLinux
+
+#Power State
+-w /sbin/shutdown -p x -k power_shutdown
+-w /sbin/poweroff -p x -k power_poweroff
+-w /sbin/reboot -p x -k power_reboot
+-w /sbin/halt -p x -k power_halt
+
+#Library Search Path
+-w /etc/ld.so.conf -p wa -k libpath
+-w /etc/ld.so.conf.d -p wa -k libpath
+-w /etc/ld.so.preload -p wa -k systemwide_preloads__T1574_Hijack_Execution_Flow__T1548.001_33
+
+#sbin
+-w /sbin/iptables -p x -k sbin_susp_T1082_2_iptables
+-w /sbin/ip6tables -p x -k sbin_susp_T1082_2_ip6tables
+-w /sbin/ifconfig -p x -k sbin_susp_T1082_3_ifconfig
+-w /usr/sbin/arptables -p x -k sbin_susp_arptables
+-w /usr/sbin/ebtables -p x -k sbin_susp_eptables
+-w /sbin/xtables-nft-multi -p x -k sbin_susp_T1082_9_xtables
+-w /usr/sbin/nft -p x -k sbin_susp_nft
+-w /usr/sbin/traceroute -p x -k sbin_susp_T1049_2_traceroute
+-w /usr/sbin/ufw -p x -k sbin_susp_ufw
+-w /usr/sbin/bettercap -p x -k T1040_Network_Sniffing_bettercap
+-w /usr/sbin/dsniff -p x -k T1040_Network_Sniffing_dsniff
+-w /usr/sbin/eigrp-tools -p x -k T1040_Network_Sniffing_eigrp_tools
+-w /usr/sbin/ettercap -p x -k T1040_Network_Sniffing_ettercap
+-w /usr/sbin/httpsniff -p x -k T1040_Network_Sniffing_httpsniff
+-w /usr/sbin/netsniff-ng -p x -k T1040_Network_Sniffing_netsniffing_ng
+-w /usr/sbin/sslsniff -p x -k T1040_Network_Sniffing_sslsniff
+-w /usr/sbin/ssldump -p x -k T1040_Network_Sniffing_ssldump
+-w /usr/sbin/tcpick -p x -k T1040_Network_Sniffing_tcpick
+-w /usr/sbin/wireshark-cli -p x -k T1040_Network_Sniffing_wireshark_cli
+-w /usr/sbin/wireshark-qt -p x -k T1040_Network_Sniffing_wireshark_qt
+-w /usr/sbin/wifi-monitor -p x -k T1040_Network_Sniffing_wifi_monitor
+-w /usr/sbin/tcpdump -p x -k T1040_Network_Sniffing_tcpdump
+#RHEL#-w /usr/sbin/chkconfig -p x -k chkconfig_T1562
+-w /usr/bin/update-ca-trust -p x -k update-ca-trust
+-w /usr/sbin/update-ca-certificates -p x -k update-ca-certificates
+-w /usr/bin/pkill -p x -k pkill
+-w /usr/bin/dbus-send -p x -k dbus_send_T1068_CVE_2021_3560
+-w /usr/bin/pkexec -p x -k pkexec_T1068_CVE_2021_4034
