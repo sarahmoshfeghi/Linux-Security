@@ -15,7 +15,7 @@ The project utilizes an **Ansible** role for configuration enforcement and a **J
 
 * **`roles/roles/update-auditd-configuration/tasks/`**: The core Ansible role responsible for pre-requisite validation, file distribution, and service management.
 * **`Jenkinsfile` (or `*.groovy`)**: The Groovy-based pipeline script that orchestrates the execution of the Ansible playbooks via Jenkins CI/CD.
-* **`auditd.rules`** :  config file 
+* **`auditd.rules`**:  config file 
 
 ---
 
