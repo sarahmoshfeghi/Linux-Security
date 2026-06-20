@@ -15,6 +15,7 @@ The project utilizes an **Ansible** role for configuration enforcement and a **J
 
 * **`roles/roles/update-auditd-configuration/tasks/`**: The core Ansible role responsible for pre-requisite validation, file distribution, and service management.
 * **`Jenkinsfile` (or `*.groovy`)**: The Groovy-based pipeline script that orchestrates the execution of the Ansible playbooks via Jenkins CI/CD.
+* ***`auditd.rules` config file*
 
 ---
 
@@ -76,4 +77,4 @@ ansible-playbook -i inventory.ini linux-auditd-configuration
 
 ---
 
-Feel free to customize the filenames (like replacing `site.yml` with your actual playbook name) to match your exact setup! How do you handle the syntax validation step for the audit rules before they get deployed?
+Feel free to customize the filenames (like replacing `linux-auditd-configuration.yml` with your actual playbook name) to match your exact setup! How do you handle the syntax validation step for the audit rules before they get deployed?
